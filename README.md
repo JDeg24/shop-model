@@ -108,3 +108,19 @@ Compare the gate with the random split of Stage 7: `make gate GATE_SPLIT=random`
 The gate's metric and threshold live in `config/config.yaml` (`gate_metric`, `gate_threshold`), next to the holdout's start date and SHA-256 fingerprint. Never edit `data/holdout.csv`: the gate refuses to run if its fingerprint changes.
 
 Start the whole stack with the version from `pyproject.toml`: `make up`.
+
+## Continuous integration
+
+GitHub Actions runs `.github/workflows/ci.yml` on every push and pull
+request. It sets up Python, installs the project, copies `env.example` to
+`.env`, and runs `make ci` to lint, test, validate the data, check the
+model quality gate and build the image. The pipeline stops if a step fails.
+
+After the checks pass on a push to `main`, the workflow publishes the image
+to GitHub Container Registry at `ghcr.io/<owner>/shop-model`, where the
+owner name is lowercase. It pushes two tags: `<version>` and
+`<version>-<commit>`. The workflow uses GitHub's `GITHUB_TOKEN` to log in.
+
+To release a new version, change the project version in `pyproject.toml`
+and push the change to `main`. A successful workflow publishes the image
+with the new version tags.
