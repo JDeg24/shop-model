@@ -1,0 +1,23 @@
+# Session 5, Stage 13: GitHub runs the same `make ci` you run on your laptop.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest        # a fresh machine, created for this run and thrown away after it
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: make install
+      - run: cp env.example .env  # the code expects a .env; placeholders only, never real secrets
+      - name: Image name in lowercase (registry names must be lowercase)
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/shop-model" >> "$GITHUB_ENV"
+      - run: make ci IMAGE="$IMAGE" SOURCE="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
