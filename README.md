@@ -109,18 +109,11 @@ The gate's metric and threshold live in `config/config.yaml` (`gate_metric`, `ga
 
 Start the whole stack with the version from `pyproject.toml`: `make up`.
 
-## Continuous integration
+## Continuous integration (Session 5, Stage 13)
 
-GitHub Actions runs `.github/workflows/ci.yml` on every push and pull
-request. It sets up Python, installs the project, copies `env.example` to
-`.env`, and runs `make ci` to lint, test, validate the data, check the
-model quality gate and build the image. The pipeline stops if a step fails.
+`.github/workflows/ci.yml` runs `make ci` on every push and pull request. On a push to `main`, once every check has passed, the same run publishes the image it just built to GitHub's container registry, as `ghcr.io/<owner>/shop-model:<version>` and `:<version>-<commit>`.
 
-After the checks pass on a push to `main`, the workflow publishes the image
-to GitHub Container Registry at `ghcr.io/<owner>/shop-model`, where the
-owner name is lowercase. It pushes two tags: `<version>` and
-`<version>-<commit>`. The workflow uses GitHub's `GITHUB_TOKEN` to log in.
-
-To release a new version, change the project version in `pyproject.toml`
-and push the change to `main`. A successful workflow publishes the image
-with the new version tags.
+- Require the `ci` check before merging (repository settings, branch protection), so a failing gate blocks the merge.
+- The version lives only in `pyproject.toml`. To release, change it there; the image tag and `MODEL_VERSION` follow.
+- No GitHub Actions? Run the same workflow locally with `act -j ci` and keep its log.
+- GitLab users: `.gitlab-ci.yml` runs the same `make` targets.

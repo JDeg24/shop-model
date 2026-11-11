@@ -6,6 +6,8 @@ VERSION := $(shell python3 -c "import tomllib; print(tomllib.load(open('pyprojec
 IMAGE ?= shop-model
 # Each image also carries the commit it was built from, so a tag is never reused for different code.
 GIT_SHA := $(shell git rev-parse --short HEAD 2>/dev/null || echo nogit)
+# On GitHub the workflow passes SOURCE, the repository address. The label links the image to the repository,
+# and ghcr.io refuses a push from the workflow without it.
 SOURCE ?=
 LABELS := $(if $(SOURCE),--label org.opencontainers.image.source=$(SOURCE))
 GATE_SPLIT ?= holdout
