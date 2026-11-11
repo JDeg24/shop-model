@@ -4,3 +4,6 @@ models
 __pychache__
 *.egg-info
 .pytest_cache
+.git
+.ruff_cache
+.hypothesis
