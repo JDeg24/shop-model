@@ -84,3 +84,27 @@ docker compose down
 
 This keeps the stored predictions and metrics, which live in volumes.
 `docker compose down -v` deletes them as well.
+
+## The pipeline (Session 5, Stage 12)
+
+Every check runs with one command, in order, stopping at the first failure:
+
+```
+make install    # pinned requirements, then the package with its dev tools
+cp env.example .env
+make ci         # lint, test, validate, gate, build
+```
+
+| Target | What it does | Fails when |
+|---|---|---|
+| `make lint` | ruff checks the code | a style or correctness rule is broken |
+| `make test` | pytest, including the property-based range test | any test fails |
+| `make validate` | checks `data/prices_v2.csv` and `data/holdout.csv` against the schema | a row is invalid or a column is unexpected |
+| `make gate` | trains on rows before the holdout and scores the frozen holdout | exit 1: below the threshold; exit 2: the holdout changed |
+| `make build` | builds `shop-model:<version>` and `shop-model:<version>-<commit>`, the version read from `pyproject.toml` | the image does not build |
+
+Compare the gate with the random split of Stage 7: `make gate GATE_SPLIT=random`.
+
+The gate's metric and threshold live in `config/config.yaml` (`gate_metric`, `gate_threshold`), next to the holdout's start date and SHA-256 fingerprint. Never edit `data/holdout.csv`: the gate refuses to run if its fingerprint changes.
+
+Start the whole stack with the version from `pyproject.toml`: `make up`.

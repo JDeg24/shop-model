@@ -4,8 +4,8 @@ import logging
 from dotenv import load_dotenv
 
 from shop_model.seed import set_seed
-from shop_model.config import load_config
-from shop_model.data import load_data
+from shop_model.config import load_config, data_path
+from shop_model.data import load_data, training_window
 from shop_model.features import add_vat
 from shop_model.model import train_model, save_model
 from shop_model.logging_setup import setup_logging
@@ -22,12 +22,15 @@ def main ():
     setup_logging(os.environ.get("LOG_LEVEL", "INFO"))
 
     try:
-        DATA_PATH = os.environ.get ("DATA_PATH", config["data_path"])
+        DATA_PATH = data_path (config)
         MODEL_PATH = os.environ.get ("MODEL_PATH", config["model_path"])
 
 
         df1 = load_data (DATA_PATH)
         logger.info ("Data read from %s", DATA_PATH)
+
+        df1 = training_window (df1, config)
+        logger.info ("Training on %d rows in the training window", len(df1))
 
         df2 = add_vat (df1, config["vat_rate"])
         logger.info ("VAT rate of %.2f added", config["vat_rate"])
